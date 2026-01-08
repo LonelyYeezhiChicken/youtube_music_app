@@ -80,7 +80,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                 IconButton(
                                   icon: const Icon(Icons.play_arrow),
                                   onPressed: () {
-                                    (audioHandler as MyAudioHandler).playLocalTrack(track);
+                                    (audioHandler as MyAudioHandler).playTrackList(_tracks, index);
                                   },
                                 ),
                                 IconButton(

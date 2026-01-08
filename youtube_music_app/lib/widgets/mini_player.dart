@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import '../main.dart';
+import '../screens/player_screen.dart';
 
 class MiniPlayer extends StatelessWidget {
   const MiniPlayer({super.key});
@@ -46,6 +47,12 @@ class MiniPlayer extends StatelessWidget {
                         }
                       },
                     ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PlayerScreen()),
+                      );
+                    },
                   ),
                 ],
               );

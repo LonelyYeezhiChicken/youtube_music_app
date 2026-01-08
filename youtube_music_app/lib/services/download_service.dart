@@ -11,8 +11,8 @@ class DownloadService {
       final streamManifest = await _yt.videos.streamsClient.getManifest(video.id);
       MuxedStreamInfo? streamInfo;
       if (streamManifest.muxed.isNotEmpty) {
-        streamInfo = streamManifest.muxed.reduce((a, b) =>
-            a.videoResolution.height > b.videoResolution.height ? a : b);
+        streamManifest.muxed.sortByVideoQuality();
+        streamInfo = streamManifest.muxed.first;
       }
 
       if (streamInfo != null) {
@@ -42,7 +42,7 @@ class DownloadService {
 
         print('Starting download stream loop...');
         await for (var chunk in response.stream) {
-          print('Received chunk of size: ${chunk.length}');
+          // print('Received chunk of size: ${chunk.length}');
           bytes.addAll(chunk);
           bytesReceived += chunk.length;
           final progress = bytesReceived / contentLength;
@@ -57,7 +57,7 @@ class DownloadService {
         print('Downloaded ${video.title} to $filePath');
         return filePath;
       } else {
-        throw Exception('No audio stream found');
+        throw Exception('No muxed stream found');
       }
     } catch (e) {
       print('Error downloading audio: $e');

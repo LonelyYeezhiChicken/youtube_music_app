@@ -38,3 +38,24 @@ The goal is to build a cross-platform application (initially for iOS, with futur
 ## External Dependencies
 - **YouTube:** The primary external service for fetching video data.
 - **Pub.dev:** The package repository for Flutter/Dart dependencies.
+
+---
+
+## Current Status & Known Issues (As of 2026-01-08)
+
+### Codebase State
+The `main` branch is currently based on the stable `v1.0.0-audio-only` tag. This version provides a unified, background-capable audio player using `audio_service`. All video-related playback features have been removed to ensure stability.
+
+### Known Issue: Unstable Downloads
+- **Problem:** The download functionality has become unreliable, frequently failing with a `ClientException: Connection closed while receiving data` error.
+- **History:** This was previously fixed by switching the download stream type to `muxed`. However, this method has also become unstable, presumably due to changes on YouTube's end.
+- **Current Action (Experimental):** As of the latest commit, the `download_service` has been modified to use `audioOnly.withHighestBitrate()` as suggested. This is an experimental attempt to find a more stable download source.
+
+### Playback State
+- Playback is handled exclusively by `audio_service` for a pure **audio-only** experience.
+- It can play both remote streams (from search) and local files (from the library).
+- Background playback is fully functional.
+
+### Next Steps
+- The immediate next step is to **validate if the new `audioOnly` download method is reliable**.
+- If download issues persist, further investigation into `youtube_explode_dart` or alternative stream-fetching methods will be required.

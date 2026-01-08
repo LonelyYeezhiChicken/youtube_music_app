@@ -208,15 +208,15 @@ class _SearchScreenState extends State<SearchScreen> {
                                           IconButton(
                                             icon: const Icon(Icons.play_arrow),
                                             onPressed: () {
-                                              final track = Track(
-                                                id: video.id.value,
-                                                title: video.title,
-                                                author: video.author,
-                                                duration: video.duration ?? Duration.zero,
+                                              final tracks = _videos.map((videoItem) => Track(
+                                                id: videoItem.id.value,
+                                                title: videoItem.title,
+                                                author: videoItem.author,
+                                                duration: videoItem.duration ?? Duration.zero,
                                                 filePath: '', // No local file path for streaming
-                                                thumbnailUrl: video.thumbnails.mediumResUrl,
-                                              );
-                                              (audioHandler as MyAudioHandler).playRemoteTrack(track);
+                                                thumbnailUrl: videoItem.thumbnails.mediumResUrl,
+                                              )).toList();
+                                              (audioHandler as MyAudioHandler).playTrackList(tracks, index);
                                             },
                                           ),
                                           // Download button or duration text
