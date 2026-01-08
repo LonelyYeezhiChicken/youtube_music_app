@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
-import 'package:youtube_music_app/screens/video_player_screen.dart';
 import '../main.dart';
 import '../models/track.dart';
 import '../services/audio_handler.dart';
@@ -81,16 +80,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                 IconButton(
                                   icon: const Icon(Icons.play_arrow),
                                   onPressed: () {
-                                    final trackPaths = _tracks.map((t) => t.filePath).toList();
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => VideoPlayerScreen(
-                                          trackPaths: trackPaths,
-                                          initialIndex: index,
-                                        ),
-                                      ),
-                                    );
+                                    (audioHandler as MyAudioHandler).playLocalTrack(track);
                                   },
                                 ),
                                 IconButton(

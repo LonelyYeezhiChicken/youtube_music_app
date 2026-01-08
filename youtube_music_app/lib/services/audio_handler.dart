@@ -58,35 +58,45 @@ class MyAudioHandler extends BaseAudioHandler with SeekHandler {
     this.mediaItem.add(mediaItem);
 
     try {
-      // Get the stream manifest and choose the best audio-only stream
-      final manifest = await _yt.videos.streamsClient.getManifest(mediaItem.id);
-      final streamInfo = manifest.audioOnly.withHighestBitrate();
-      
-      // Set the URL and start playing
-      await _player.setSourceUrl(streamInfo.url.toString());
+      if (mediaItem.extras?['is_local_file'] == true) {
+        // Play from local file
+        await _player.setSourceDeviceFile(mediaItem.id);
+      } else {
+        // Play from YouTube stream (assuming mediaItem.id is YouTube Video ID)
+        final manifest = await _yt.videos.streamsClient.getManifest(mediaItem.id);
+        final streamInfo = manifest.audioOnly.withHighestBitrate();
+        await _player.setSourceUrl(streamInfo.url.toString());
+      }
       await play();
     } catch (e) {
-      print("Error setting source url: $e");
+      print("Error playing media: $e");
       stop();
     }
   }
 
-  // This method can be called from the UI to start streaming a track.
-  // Note: It now uses the track's YouTube ID.
-  void playStreamableTrack(Track track) {
+  /// Plays a track from a remote YouTube stream.
+  void playRemoteTrack(Track track) {
     final mediaItem = MediaItem(
-      id: track.id, // Use YouTube video ID for streaming
+      id: track.id, // YouTube Video ID for streaming
       title: track.title,
       artist: track.author,
       duration: track.duration,
       artUri: Uri.parse(track.thumbnailUrl),
+      extras: {'is_local_file': false},
     );
     playMediaItem(mediaItem);
   }
 
-  // Kept for compatibility, but its usage is now for streaming.
-  // It's better to call playStreamableTrack for clarity.
-  void playTrack(Track track) {
-    playStreamableTrack(track);
+  /// Plays a track from a local downloaded file.
+  void playLocalTrack(Track track) {
+    final mediaItem = MediaItem(
+      id: track.filePath, // Local file path
+      title: track.title,
+      artist: track.author,
+      duration: track.duration,
+      artUri: Uri.parse(track.thumbnailUrl),
+      extras: {'is_local_file': true},
+    );
+    playMediaItem(mediaItem);
   }
 }

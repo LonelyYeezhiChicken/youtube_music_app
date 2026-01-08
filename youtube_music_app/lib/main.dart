@@ -191,7 +191,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                 subtitle: Text(video.author),
                                 trailing: isDownloading
                                     ? SizedBox(
-                                        width: 100,
+                                        width: 100, // Adjusted width to accommodate progress indicator better
                                         child: Column(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
@@ -201,8 +201,32 @@ class _SearchScreenState extends State<SearchScreen> {
                                           ],
                                         ),
                                       )
-                                    : Text(video.duration.toString().split('.').first.padLeft(8, '0')),
-                                onTap: isDownloading ? null : () => _onDownload(video),
+                                    : Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          // Play remote track button
+                                          IconButton(
+                                            icon: const Icon(Icons.play_arrow),
+                                            onPressed: () {
+                                              final track = Track(
+                                                id: video.id.value,
+                                                title: video.title,
+                                                author: video.author,
+                                                duration: video.duration ?? Duration.zero,
+                                                filePath: '', // No local file path for streaming
+                                                thumbnailUrl: video.thumbnails.mediumResUrl,
+                                              );
+                                              (audioHandler as MyAudioHandler).playRemoteTrack(track);
+                                            },
+                                          ),
+                                          // Download button or duration text
+                                          IconButton(
+                                            icon: const Icon(Icons.download),
+                                            onPressed: isDownloading ? null : () => _onDownload(video),
+                                          ),
+                                        ],
+                                      ),
+                                onTap: isDownloading ? null : () => _onDownload(video), // Keep download on main tap
                               ),
                             );
                           },
