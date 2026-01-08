@@ -1,5 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import '../models/track.dart';
 
 Future<MyAudioHandler> initAudioService() async {
@@ -15,7 +16,8 @@ Future<MyAudioHandler> initAudioService() async {
 
 class MyAudioHandler extends BaseAudioHandler with SeekHandler {
   final AudioPlayer _player = AudioPlayer();
-  
+  final _yt = YoutubeExplode();
+
   MyAudioHandler() {
     _player.onPlayerStateChanged.listen((playerState) {
       final isPlaying = playerState == PlayerState.playing;
@@ -43,6 +45,7 @@ class MyAudioHandler extends BaseAudioHandler with SeekHandler {
   @override
   Future<void> stop() async {
     await _player.stop();
+    await super.stop();
   }
 
   @override
@@ -52,21 +55,38 @@ class MyAudioHandler extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> playMediaItem(MediaItem mediaItem) async {
-    // This is where we start playback. We'll need to convert our Track to a MediaItem
-    // and then call this method.
     this.mediaItem.add(mediaItem);
-    await _player.setSourceDeviceFile(mediaItem.id);
-    await play();
+
+    try {
+      // Get the stream manifest and choose the best audio-only stream
+      final manifest = await _yt.videos.streamsClient.getManifest(mediaItem.id);
+      final streamInfo = manifest.audioOnly.withHighestBitrate();
+      
+      // Set the URL and start playing
+      await _player.setSourceUrl(streamInfo.url.toString());
+      await play();
+    } catch (e) {
+      print("Error setting source url: $e");
+      stop();
+    }
   }
 
-  void playTrack(Track track) {
+  // This method can be called from the UI to start streaming a track.
+  // Note: It now uses the track's YouTube ID.
+  void playStreamableTrack(Track track) {
     final mediaItem = MediaItem(
-      id: track.filePath,
+      id: track.id, // Use YouTube video ID for streaming
       title: track.title,
       artist: track.author,
       duration: track.duration,
       artUri: Uri.parse(track.thumbnailUrl),
     );
     playMediaItem(mediaItem);
+  }
+
+  // Kept for compatibility, but its usage is now for streaming.
+  // It's better to call playStreamableTrack for clarity.
+  void playTrack(Track track) {
+    playStreamableTrack(track);
   }
 }

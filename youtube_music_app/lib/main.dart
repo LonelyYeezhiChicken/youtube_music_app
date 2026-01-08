@@ -15,11 +15,16 @@ late AudioHandler audioHandler;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize audio service first, as it might spawn isolates that conflict with db setup.
+  audioHandler = await initAudioService();
+
+  // Then initialize Hive for the main isolate.
   await Hive.initFlutter();
   Hive.registerAdapter(TrackAdapter());
   Hive.registerAdapter(DurationAdapter()); // Register DurationAdapter
   await DatabaseService().init();
-  audioHandler = await initAudioService();
+  
   runApp(const MyApp());
 }
 
