@@ -85,14 +85,12 @@ class MyAudioHandler extends BaseAudioHandler with SeekHandler {
 
     try {
       if (mediaItem.extras?['is_local_file'] == true) {
-        final path = mediaItem.id;
-        print("Attempting to play local file as URL: file:///$path");
-        await _player.setSourceUrl("file:///$path");
+        // Play from local file
+        await _player.setSourceDeviceFile(mediaItem.id);
       } else {
         // Play from YouTube stream (assuming mediaItem.id is YouTube Video ID)
         final manifest = await _yt.videos.streamsClient.getManifest(mediaItem.id);
         final streamInfo = manifest.audioOnly.withHighestBitrate();
-        print("Attempting to play remote stream: ${streamInfo.url.toString()}");
         await _player.setSourceUrl(streamInfo.url.toString());
       }
       await play();
@@ -104,17 +102,30 @@ class MyAudioHandler extends BaseAudioHandler with SeekHandler {
   }
 
   /// Plays a track from a remote YouTube stream.
-  @Deprecated('Use playTrackList instead')
   void playRemoteTrack(Track track) {
-    playTrackList([track], 0);
+    final mediaItem = MediaItem(
+      id: track.id, // YouTube Video ID for streaming
+      title: track.title,
+      artist: track.author,
+      duration: track.duration,
+      artUri: Uri.parse(track.thumbnailUrl),
+      extras: {'is_local_file': false},
+    );
+    playMediaItem(mediaItem);
   }
 
   /// Plays a track from a local downloaded file.
-  @Deprecated('Use playTrackList instead')
   void playLocalTrack(Track track) {
-    playTrackList([track], 0);
+    final mediaItem = MediaItem(
+      id: track.filePath, // Local file path
+      title: track.title,
+      artist: track.author,
+      duration: track.duration,
+      artUri: Uri.parse(track.thumbnailUrl),
+      extras: {'is_local_file': true},
+    );
+    playMediaItem(mediaItem);
   }
-
   /// Plays a list of tracks, starting from a specific index.
   Future<void> playTrackList(List<Track> tracks, int initialIndex) async {
     final mediaItems = tracks.map((track) {
