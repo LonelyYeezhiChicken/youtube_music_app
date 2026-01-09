@@ -114,6 +114,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         },
                       ),
           ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text('Version: 1.0.1', style: Theme.of(context).textTheme.bodySmall), // Hardcoded version
+          ),
           MiniPlayer(),
         ],
       ),

@@ -16,14 +16,16 @@ Future<MyAudioHandler> initAudioService() async {
 }
 
 class MyAudioHandler extends BaseAudioHandler with SeekHandler {
-  final AudioPlayer _player = AudioPlayer();
-  final _yt = YoutubeExplode();
+  final AudioPlayer _player;
+  final YoutubeExplode _yt;
   int _nextMediaId = 0;
   List<MediaItem> _queue = [];
   int _queueIndex = -1;
 
 
-  MyAudioHandler() {
+  MyAudioHandler({AudioPlayer? audioPlayer, YoutubeExplode? youtubeExplode})
+      : _player = audioPlayer ?? AudioPlayer(),
+        _yt = youtubeExplode ?? YoutubeExplode() {
     _player.onPlayerStateChanged.listen((playerState) {
       final isPlaying = playerState == PlayerState.playing;
       playbackState.add(playbackState.value.copyWith(

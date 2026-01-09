@@ -2,9 +2,29 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p; // Add path import
 
 class DownloadService {
-  final YoutubeExplode _yt = YoutubeExplode();
+  final YoutubeExplode _yt;
+  final http.Client _httpClient;
+
+  // Private constructor for dependency injection
+  DownloadService._internal({
+    required YoutubeExplode youtubeExplode, 
+    required http.Client httpClient
+  })  : _yt = youtubeExplode,
+        _httpClient = httpClient;
+
+  // Factory constructor for normal use
+  factory DownloadService({
+    YoutubeExplode? youtubeExplode, 
+    http.Client? httpClient
+  }) {
+    return DownloadService._internal(
+      youtubeExplode: youtubeExplode ?? YoutubeExplode(),
+      httpClient: httpClient ?? http.Client(),
+    );
+  }
 
   Future<String> downloadAudio(Video video, {required Function(double) onProgress}) async {
     final maxRetries = 3;
@@ -13,8 +33,8 @@ class DownloadService {
         final streamManifest = await _yt.videos.streamsClient.getManifest(video.id);
         MuxedStreamInfo? streamInfo; // Use MuxedStreamInfo
         if (streamManifest.muxed.isNotEmpty) {
-          streamManifest.muxed.sortByVideoQuality();
-          streamInfo = streamManifest.muxed.first;
+          // Sort by video quality to get the best one
+          streamInfo = streamManifest.muxed.sortByVideoQuality().first;
         }
 
         if (streamInfo != null) {
@@ -22,15 +42,18 @@ class DownloadService {
           print('Downloading stream with container: $container');
           print('Stream URL: ${streamInfo.url}');
           
-          final appDir = await getApplicationDocumentsDirectory();
-          final filePath = '${appDir.path}/${video.id.value}.$container';
+          final appDir = await getDownloadsDirectory(); // Use getDownloadsDirectory for persistent storage
+          if (appDir == null) {
+            throw Exception('Downloads directory not found.');
+          }
+          print('Application Downloads Directory: ${appDir.path}'); // Log the path
+          final filePath = p.join(appDir.path, '${video.id.value}.$container'); // Use p.join
           final file = File(filePath);
 
-          final client = http.Client();
           final request = http.Request('GET', streamInfo.url)
             ..headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
             ..headers['Referer'] = 'https://www.youtube.com/';
-          final response = await client.send(request).timeout(const Duration(seconds: 30)); // Add timeout
+          final response = await _httpClient.send(request).timeout(const Duration(seconds: 30)); // Use injected client
 
           print('HTTP Response Status Code: ${response.statusCode}');
 
@@ -54,8 +77,8 @@ class DownloadService {
           
           print('Total bytes received: ${bytes.length}. Writing to file...');
           await file.writeAsBytes(bytes);
-          client.close();
-          
+          // Removed _httpClient.close(); as the client might be injected and reused
+
           print('Downloaded ${video.title} to $filePath');
           return filePath;
         } else {
@@ -64,9 +87,9 @@ class DownloadService {
       } catch (e) {
         print('Error downloading audio (retry ${retry + 1}/$maxRetries): $e');
         if (retry == maxRetries - 1) rethrow; // Rethrow only after last retry
-        await Future.delayed(Duration(seconds: 2)); // Wait before retrying
+        await Future.delayed(const Duration(seconds: 2)); // Wait before retrying
       }
     }
     throw Exception('Download failed after $maxRetries retries.'); // Should not be reached
   }
-} // Add missing closing brace for DownloadService class
+}

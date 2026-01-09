@@ -14,7 +14,7 @@ Playback SHALL be centered around a playlist, which is automatically generated f
 
 #### Scenario: Play from Search
 - **Given** I am on the Search screen with a list of search results.
-- **When** I tap the "play" button on a track.
+- **When** I tap the "play"button on a track.
 - **Then** playback starts for that track.
 - **And** the current playlist is set to the complete list of tracks from the search results.
 - **And** pressing "next" plays the next track in the search results.

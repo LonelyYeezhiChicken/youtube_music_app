@@ -4,12 +4,18 @@ import '../models/track.dart';
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
   factory DatabaseService() => _instance;
-  DatabaseService._internal();
+  DatabaseService._internal({Box<Track>? trackBox}) { // Add optional trackBox parameter
+    if (trackBox != null) {
+      _tracksBox = trackBox;
+    }
+  }
 
   late Box<Track> _tracksBox;
 
   Future<void> init() async {
-    _tracksBox = await Hive.openBox<Track>('tracks');
+    if (!Hive.isBoxOpen('tracks')) { // Only open if not already open (e.g., injected)
+      _tracksBox = await Hive.openBox<Track>('tracks');
+    }
   }
 
   Future<void> addTrack(Track track) {

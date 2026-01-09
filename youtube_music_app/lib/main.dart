@@ -12,20 +12,28 @@ import 'services/youtube_service.dart';
 import 'widgets/mini_player.dart';
 
 late AudioHandler audioHandler;
+bool _testing = false; // Add a testing flag
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize audio service first, as it might spawn isolates that conflict with db setup.
-  audioHandler = await initAudioService();
-
-  // Then initialize Hive for the main isolate.
   await Hive.initFlutter();
   Hive.registerAdapter(TrackAdapter());
   Hive.registerAdapter(DurationAdapter()); // Register DurationAdapter
   await DatabaseService().init();
-  
+  if (!_testing) { // Only initialize if not in a testing environment
+    audioHandler = await initAudioService();
+  }
   runApp(const MyApp());
+}
+
+// Helper function for tests to set the testing flag
+void enableTestingMode() {
+  _testing = true;
+}
+
+// Helper function for tests to set a mock audioHandler
+void setMockAudioHandler(AudioHandler mockHandler) {
+  audioHandler = mockHandler;
 }
 
 class MyApp extends StatelessWidget {

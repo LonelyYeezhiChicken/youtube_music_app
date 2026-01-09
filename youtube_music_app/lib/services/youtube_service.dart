@@ -3,7 +3,7 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 class YoutubeService {
   final YoutubeExplode _yt;
 
-  YoutubeService() : _yt = YoutubeExplode();
+  YoutubeService({YoutubeExplode? youtubeExplode}) : _yt = youtubeExplode ?? YoutubeExplode();
 
   Future<List<Video>> searchVideos(String query) async {
     try {
