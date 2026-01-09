@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
@@ -86,11 +87,17 @@ class MyAudioHandler extends BaseAudioHandler with SeekHandler {
     try {
       if (mediaItem.extras?['is_local_file'] == true) {
         // Play from local file
-        await _player.setSourceDeviceFile(mediaItem.id);
+        final path = mediaItem.id;
+        print("Attempting to play local file: $path");
+        final fileExists = File(path).existsSync();
+        print("Local file exists: $fileExists");
+        // Try playing local file as URL to bypass potential setSourceDeviceFile issues on Android
+        await _player.setSourceUrl("file:///$path");
       } else {
         // Play from YouTube stream (assuming mediaItem.id is YouTube Video ID)
         final manifest = await _yt.videos.streamsClient.getManifest(mediaItem.id);
         final streamInfo = manifest.audioOnly.withHighestBitrate();
+        print("Attempting to play remote stream: ${streamInfo.url.toString()}");
         await _player.setSourceUrl(streamInfo.url.toString());
       }
       await play();
